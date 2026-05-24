@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiMoReadme — AI README Generator by Xiaomi MiMo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#02040a;--bg2:#0a0c14;--bg3:#12141e;--bg4:#1a1c28;
+  --text:#e4e6ed;--text2:#9ca3b4;--text3:#6b7280;
+  --accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,.15);
+  --border:rgba(99,102,241,.12);--border2:rgba(255,255,255,.06);
+  --glass:rgba(10,12,20,.72);--glass-border:rgba(99,102,241,.18);
+  --success:#10b981;--warn:#f59e0b;--err:#ef4444;
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;
+  --shadow:0 8px 32px rgba(0,0,0,.4);
+  --font:'Inter',-apple-system,sans-serif;
+}
+[data-theme="light"]{
+  --bg:#f8f9fc;--bg2:#ffffff;--bg3:#f1f3f9;--bg4:#e8eaf2;
+  --text:#1a1c2e;--text2:#4b5563;--text3:#9ca3af;
+  --border:rgba(99,102,241,.15);--border2:rgba(0,0,0,.06);
+  --glass:rgba(255,255,255,.82);--glass-border:rgba(99,102,241,.2);
+  --shadow:0 8px 32px rgba(0,0,0,.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6}
+
+/* Mesh gradient background */
+.mesh-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45}
+.mesh-bg::before{content:'';position:absolute;inset:-50%;background:
+  radial-gradient(ellipse 600px 600px at 20% 30%,rgba(99,102,241,.12),transparent),
+  radial-gradient(ellipse 500px 500px at 80% 70%,rgba(139,92,246,.08),transparent),
+  radial-gradient(ellipse 400px 400px at 50% 50%,rgba(59,130,246,.06),transparent);
+  animation:meshMove 20s ease-in-out infinite alternate}
+@keyframes meshMove{0%{transform:translate(0,0) rotate(0deg)}100%{transform:translate(-30px,20px) rotate(3deg)}}
+
+/* Floating particles */
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;background:var(--accent);border-radius:50%;opacity:0;animation:float linear infinite}
+@keyframes float{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.6}90%{opacity:.6}100%{opacity:0;transform:translateY(-10vh) scale(1)}}
+
+.container{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:0 24px}
+
+/* Header */
+header{padding:20px 0;border-bottom:1px solid var(--border2);background:var(--glass);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.header-inner{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.5px}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-actions{display:flex;align-items:center;gap:12px}
+.theme-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--text);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.theme-btn:hover{border-color:var(--accent);background:var(--accent-glow)}
+
+/* Hero */
+.hero{text-align:center;padding:80px 0 48px}
+.hero h1{font-size:clamp(32px,5vw,56px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),#a78bfa,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:18px;color:var(--text2);max-width:600px;margin:0 auto 32px}
+
+/* Input Section */
+.input-section{max-width:900px;margin:0 auto 48px}
+.input-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;position:relative;overflow:hidden}
+.input-card::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,var(--accent),transparent 60%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.4}
+
+.mode-tabs{display:flex;gap:8px;margin-bottom:24px}
+.mode-tab{padding:8px 20px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);font-weight:510;font-size:14px;transition:.2s}
+.mode-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mode-tab:hover:not(.active){border-color:var(--accent);color:var(--text)}
+
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;transition:.2s;outline:none}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+textarea.form-input{resize:vertical;min-height:100px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+
+/* Template selector */
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.template-card{padding:16px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);cursor:pointer;text-align:center;transition:.2s}
+.template-card:hover{border-color:var(--accent2);background:var(--accent-glow)}
+.template-card.active{border-color:var(--accent);background:var(--accent-glow)}
+.template-card .icon{font-size:28px;margin-bottom:8px}
+.template-card .name{font-weight:600;font-size:14px}
+.template-card .desc{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* Section toggles */
+.section-toggles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.toggle-chip{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-size:12px;font-weight:510;cursor:pointer;transition:.2s;user-select:none}
+.toggle-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.toggle-chip:hover:not(.active){border-color:var(--accent)}
+
+/* Generate button */
+.btn-generate{width:100%;padding:14px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;font-family:var(--font);font-weight:600;font-size:16px;cursor:pointer;transition:.2s;letter-spacing:-.3px;position:relative;overflow:hidden}
+.btn-generate:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,.3)}
+.btn-generate:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-generate .shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:translateX(-100%);animation:shimmer 2s infinite}
+@keyframes shimmer{100%{transform:translateX(100%)}}
+.btn-generate.loading .shimmer{animation-duration:.8s}
+
+/* Output Section */
+.output-section{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px}
+@media(max-width:900px){.output-section{grid-template-columns:1fr}}
+.output-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;min-height:500px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border2);background:var(--bg3)}
+.panel-title{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.panel-actions{display:flex;gap:8px}
+.panel-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);transition:.2s}
+.panel-btn:hover{border-color:var(--accent);color:var(--accent)}
+.panel-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.raw-editor{width:100%;height:calc(100% - 45px);padding:16px;border:none;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;resize:none;outline:none;line-height:1.7}
+.preview-content{padding:24px;overflow-y:auto;max-height:600px}
+.preview-content h1{font-size:28px;font-weight:700;margin:0 0 16px;letter-spacing:-.5px;border-bottom:1px solid var(--border2);padding-bottom:12px}
+.preview-content h2{font-size:22px;font-weight:600;margin:24px 0 12px;color:var(--accent2)}
+.preview-content h3{font-size:18px;font-weight:600;margin:16px 0 8px}
+.preview-content p{margin:8px 0;color:var(--text2)}
+.preview-content code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px}
+.preview-content pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;overflow-x:auto;margin:12px 0}
+.preview-content pre code{background:none;padding:0}
+.preview-content ul,.preview-content ol{margin:8px 0 8px 24px;color:var(--text2)}
+.preview-content li{margin:4px 0}
+.preview-content img{max-width:100%;border-radius:var(--radius-sm)}
+.preview-content a{color:var(--accent2);text-decoration:none}
+.preview-content a:hover{text-decoration:underline}
+.preview-content blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;background:var(--accent-glow);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.preview-content table{width:100%;border-collapse:collapse;margin:12px 0}
+.preview-content th,.preview-content td{padding:8px 12px;border:1px solid var(--border);text-align:left;font-size:13px}
+.preview-content th{background:var(--bg3);font-weight:600}
+.preview-content .badge{display:inline-block;margin:2px}
+
+/* Chat widget */
+.chat-widget{position:fixed;bottom:24px;right:24px;z-index:200}
+.chat-toggle{width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:.2s;display:flex;align-items:center;justify-content:center}
+.chat-toggle:hover{transform:scale(1.05)}
+.chat-panel{position:absolute;bottom:70px;right:0;width:380px;max-height:500px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);display:none;flex-direction:column;overflow:hidden}
+.chat-panel.open{display:flex}
+.chat-header{padding:14px 16px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between}
+.chat-header span{font-weight:600;font-size:14px}
+.chat-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;min-height:250px}
+.chat-msg{margin-bottom:12px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;line-height:1.6}
+.chat-msg.user{background:var(--accent);color:#fff;margin-left:40px}
+.chat-msg.ai{background:var(--bg3);color:var(--text);margin-right:40px}
+.chat-input-area{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border2)}
+.chat-input{flex:1;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;outline:none}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send{padding:10px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer}
+
+/* Badge preview */
+.badge-preview{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;padding:12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.badge-preview img{height:20px}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:skeleton 1.5s infinite;border-radius:4px}
+@keyframes skeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Toast */
+.toast{position:fixed;top:24px;right:24px;padding:12px 20px;border-radius:var(--radius-sm);background:var(--success);color:#fff;font-weight:500;font-size:14px;z-index:1000;transform:translateX(120%);transition:.3s}
+.toast.show{transform:translateX(0)}
+.toast.err{background:var(--err)}
+
+/* Mobile tabs */
+.mobile-tabs{display:none;gap:8px;margin-bottom:16px}
+.mobile-tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--font);font-weight:510;font-size:13px;cursor:pointer}
+.mobile-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media(max-width:900px){.mobile-tabs{display:flex}.output-panel.hidden-mobile{display:none}}
+
+/* Footer */
+footer{text-align:center;padding:32px 0;color:var(--text3);font-size:13px;border-top:1px solid var(--border2)}
+footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="mesh-bg"></div>
+<div class="particles" id="particles"></div>
+
+<header>
+  <div class="container header-inner">
+    <div class="logo">
+      <div class="logo-icon">📖</div>
+      <span>MiMoReadme</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <h1>Generate <span>READMEs</span><br>with AI</h1>
+    <p>Paste your repo, pick a template, get a professional README powered by Xiaomi MiMo V2.5 — in seconds.</p>
+  </section>
+
+  <section class="input-section">
+    <div class="input-card">
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('github')">🔗 GitHub URL</button>
+        <button class="mode-tab" onclick="setMode('manual')">✏️ Manual Input</button>
+      </div>
+
+      <div id="githubMode">
+        <div class="form-group">
+          <label>GitHub Repository URL</label>
+          <input class="form-input" id="repoUrl" placeholder="https://github.com/user/repo" oninput="extractRepoInfo()">
+        </div>
+        <div class="form-group">
+          <label>What does this project do? (brief)</label>
+          <textarea class="form-input" id="projectDesc" placeholder="Describe the project's purpose, key features, and target audience..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <div id="manualMode" style="display:none">
+        <div class="row">
+          <div class="form-group">
+            <label>Project Name</label>
+            <input class="form-input" id="manualName" placeholder="My Awesome Project">
+          </div>
+          <div class="form-group">
+            <label>GitHub Username</label>
+            <input class="form-input" id="manualUser" placeholder="username">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Project Description</label>
+          <textarea class="form-input" id="manualDesc" placeholder="What does your project do?" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Key Features (one per line)</label>
+          <textarea class="form-input" id="manualFeatures" placeholder="Feature 1&#10;Feature 2&#10;Feature 3" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tech Stack (comma separated)</label>
+          <input class="form-input" id="manualStack" placeholder="React, Node.js, PostgreSQL, Docker">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:20px">
+        <label>README Template</label>
+        <div class="template-grid">
+          <div class="template-card active" onclick="setTemplate('modern')" data-tpl="modern">
+            <div class="icon">✨</div>
+            <div class="name">Modern</div>
+            <div class="desc">Badges + clean sections</div>
+          </div>
+          <div class="template-card" onclick="setTemplate('classic')" data-tpl="classic">
+            <div class="icon">📜</div>
+            <div class="name">Classic</div>
+            <div class="desc">Traditional dev README</div>
+          </div>
+          <div class="template-card" onclick="setTemplate('minimal')" data-tpl="minimal">
+            <div class="icon">🎯</div>
+            <div class="name">Minimal</div>
+            <div class="desc">Just the essentials</div>
+          </div>
+          <div class="template-card" onclick="setTemplate('hackathon')" data-tpl="hackathon">
+            <div class="icon">🏆</div>
+            <div class="name">Hackathon</div>
+            <div class="desc">DevPost / demo ready</div>
+          </div>
+          <div class="template-card" onclick="setTemplate('mimo')" data-tpl="mimo">
+            <div class="icon">🤖</div>
+            <div class="name">MiMo 100T</div>
+            <div class="desc">Xiaomi MiMo program style</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Include Sections</label>
+        <div class="section-toggles">
+          <div class="toggle-chip active" data-section="badges" onclick="toggleSection(this)">Badges</div>
+          <div class="toggle-chip active" data-section="features" onclick="toggleSection(this)">Features</div>
+          <div class="toggle-chip active" data-section="demo" onclick="toggleSection(this)">Demo</div>
+          <div class="toggle-chip active" data-section="installation" onclick="toggleSection(this)">Installation</div>
+          <div class="toggle-chip active" data-section="usage" onclick="toggleSection(this)">Usage</div>
+          <div class="toggle-chip active" data-section="tech" onclick="toggleSection(this)">Tech Stack</div>
+          <div class="toggle-chip active" data-section="api" onclick="toggleSection(this)">API</div>
+          <div class="toggle-chip" data-section="contributing" onclick="toggleSection(this)">Contributing</div>
+          <div class="toggle-chip" data-section="license" onclick="toggleSection(this)">License</div>
+          <div class="toggle-chip" data-section="acknowledgments" onclick="toggleSection(this)">Acknowledgments</div>
+          <div class="toggle-chip" data-section="screenshots" onclick="toggleSection(this)">Screenshots</div>
+          <div class="toggle-chip" data-section="roadmap" onclick="toggleSection(this)">Roadmap</div>
+        </div>
+      </div>
+
+      <button class="btn-generate" id="generateBtn" onclick="generateReadme()">
+        <span class="shimmer"></span>
+        ✨ Generate README with MiMo
+      </button>
+    </div>
+  </section>
+
+  <div class="mobile-tabs">
+    <button class="mobile-tab active" onclick="showMobilePanel('raw')">📝 Markdown</button>
+    <button class="mobile-tab" onclick="showMobilePanel('preview')">👁️ Preview</button>
+  </div>
+
+  <section class="output-section" id="outputSection">
+    <div class="output-panel" id="rawPanel">
+      <div class="panel-header">
+        <div class="panel-title">📝 README.md</div>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="copyReadme()">📋 Copy</button>
+          <button class="panel-btn primary" onclick="downloadReadme()">⬇️ Download</button>
+        </div>
+      </div>
+      <textarea class="raw-editor" id="rawEditor" placeholder="# Your README will appear here...&#10;&#10;Click 'Generate README' to start."></textarea>
+    </div>
+    <div class="output-panel" id="previewPanel">
+      <div class="panel-header">
+        <div class="panel-title">👁️ Preview</div>
+      </div>
+      <div class="preview-content" id="previewContent">
+        <p style="color:var(--text3);text-align:center;padding:40px">Preview will appear here after generation.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>MiMoReadme — Powered by <a href="https://text.pollinations.ai" target="_blank">Xiaomi MiMo V2.5</a> via Pollinations.ai · Built for <a href="https://mimo.money" target="_blank">MiMo 100T Creator Program</a></p>
+</footer>
+
+<!-- Chat Widget -->
+<div class="chat-widget">
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <span>🤖 Chat with MiMo</span>
+      <button class="chat-close" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg ai">Hey! I'm MiMo 👋 Paste your repo or describe your project, then ask me to help refine your README — add sections, fix wording, suggest badges, anything!</div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" placeholder="Ask MiMo to refine your README..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+  <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">🤖</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// === Config ===
+const MIMO_API = 'https://text.pollinations.ai/openai';
+const MIMO_MODEL = 'openai';
+
+// === State ===
+let currentMode = 'github';
+let currentTemplate = 'modern';
+let activeSections = new Set(['badges','features','demo','installation','usage','tech','api']);
+let generatedMarkdown = '';
+let chatHistory = [];
+
+// === Theme ===
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.getAttribute('data-theme') !== 'light';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+(function initTheme() {
+  const t = localStorage.getItem('theme') || 'dark';
+  document.body.setAttribute('data-theme', t);
+  document.getElementById('themeBtn').textContent = t === 'light' ? '☀️' : '🌙';
+})();
+
+// === Particles ===
+(function initParticles() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 12) + 's';
+    p.style.animationDelay = Math.random() * 10 + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    c.appendChild(p);
+  }
+})();
+
+// === Mode ===
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('githubMode').style.display = mode === 'github' ? 'block' : 'none';
+  document.getElementById('manualMode').style.display = mode === 'manual' ? 'block' : 'none';
+}
+
+// === Template ===
+function setTemplate(tpl) {
+  currentTemplate = tpl;
+  document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[data-tpl="${tpl}"]`).classList.add('active');
+}
+
+// === Section toggles ===
+function toggleSection(el) {
+  const sec = el.dataset.section;
+  el.classList.toggle('active');
+  if (el.classList.contains('active')) activeSections.add(sec);
+  else activeSections.delete(sec);
+}
+
+// === Mobile panels ===
+function showMobilePanel(panel) {
+  document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('rawPanel').classList.toggle('hidden-mobile', panel !== 'raw');
+  document.getElementById('previewPanel').classList.toggle('hidden-mobile', panel !== 'preview');
+}
+
+// === Extract repo info from URL ===
+function extractRepoInfo() {
+  const url = document.getElementById('repoUrl').value.trim();
+  const m = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+  if (m) {
+    document.getElementById('projectDesc').placeholder = `${m[2]} by ${m[1]} — describe what it does...`;
+  }
+}
+
+function parseRepoUrl() {
+  const url = document.getElementById('repoUrl').value.trim();
+  const m = url.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
+  return m ? { user: m[1], repo: m[2].replace(/\.git$/, '') } : null;
+}
+
+// === Build prompt ===
+function buildPrompt() {
+  let context = '';
+  const sections = [...activeSections];
+
+  if (currentMode === 'github') {
+    const repo = parseRepoUrl();
+    const desc = document.getElementById('projectDesc').value.trim();
+    if (!repo) return null;
+    context = `GitHub repo: ${repo.user}/${repo.repo}\nDescription: ${desc || 'Not provided'}`;
+  } else {
+    const name = document.getElementById('manualName').value.trim();
+    const user = document.getElementById('manualUser').value.trim();
+    const desc = document.getElementById('manualDesc').value.trim();
+    const features = document.getElementById('manualFeatures').value.trim();
+    const stack = document.getElementById('manualStack').value.trim();
+    if (!name) return null;
+    context = `Project: ${name}\nUser: ${user}\nDescription: ${desc}\nFeatures: ${features}\nTech Stack: ${stack}`;
+  }
+
+  const templateInstructions = {
+    modern: 'Use centered header with large title, badges row, clean sections with emoji headers.',
+    classic: 'Standard developer README with TOC, detailed sections, no emoji headers.',
+    minimal: 'Bare essentials only: title, one-line desc, install, usage. Keep under 80 lines.',
+    hackathon: 'DevPost style: What, How, Challenges, Accomplishments, What\'s Next, Team.',
+    mimo: 'MiMo 100T style: centered div header with shields.io badges (for-the-badge hero + flat-square stats), narrative problem-solution, concrete demo flow, detailed feature bullets, ASCII architecture diagram, performance table.'
+  };
+
+  return `Generate a professional README.md file for this project.
+
+${context}
+
+Template style: ${currentTemplate} — ${templateInstructions[currentTemplate]}
+
+Include ONLY these sections: ${sections.join(', ')}
+
+Requirements:
+- Output ONLY valid markdown, no explanation before or after
+- Use shields.io badges where appropriate
+- Code blocks with proper language tags
+- Make it production-ready, not a template placeholder
+- If GitHub URL provided, reference it naturally
+- For MiMo 100T template: include "Built for Xiaomi MiMo 100T Creator Program" badge`;
+}
+
+// === Generate ===
+async function generateReadme() {
+  const prompt = buildPrompt();
+  if (!prompt) {
+    showToast('Please fill in the required fields', true);
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="shimmer"></span>⏳ Generating with MiMo...';
+
+  try {
+    const resp = await fetch(MIMO_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MIMO_MODEL,
+        messages: [
+          { role: 'system', content: 'You are a professional technical writer. Generate clean, production-ready README.md files. Output ONLY markdown.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000
+      })
+    });
+
+    const data = await resp.json();
+    let md = data.choices?.[0]?.message?.content || '';
+    md = md.replace(/^```markdown?\n?/i, '').replace(/\n?```$/i, '').trim();
+
+    generatedMarkdown = md;
+    document.getElementById('rawEditor').value = md;
+    updatePreview(md);
+    showToast('README generated successfully!');
+  } catch (e) {
+    showToast('Generation failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = '<span class="shimmer"></span>✨ Generate README with MiMo';
+  }
+}
+
+// === Preview ===
+function updatePreview(md) {
+  const html = marked.parse(md, { breaks: true, gfm: true });
+  const el = document.getElementById('previewContent');
+  el.innerHTML = html;
+  el.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+}
+
+// Live preview on editor edit
+document.getElementById('rawEditor').addEventListener('input', function() {
+  generatedMarkdown = this.value;
+  updatePreview(this.value);
+});
+
+// === Copy / Download ===
+function copyReadme() {
+  const md = document.getElementById('rawEditor').value;
+  if (!md) return showToast('Nothing to copy', true);
+  navigator.clipboard.writeText(md).then(() => showToast('Copied to clipboard!'));
+}
+
+function downloadReadme() {
+  const md = document.getElementById('rawEditor').value;
+  if (!md) return showToast('Nothing to download', true);
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'README.md';
+  a.click();
+  showToast('README.md downloaded!');
+}
+
+// === Chat ===
+function toggleChat() {
+  document.getElementById('chatPanel').classList.toggle('open');
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const messages = document.getElementById('chatMessages');
+  messages.innerHTML += `<div class="chat-msg user">${escapeHtml(msg)}</div>`;
+  messages.scrollTop = messages.scrollHeight;
+
+  const currentReadme = document.getElementById('rawEditor').value || '(no README generated yet)';
+  chatHistory.push({ role: 'user', content: msg });
+
+  const sysPrompt = `You are MiMo, a helpful AI assistant for MiMoReadme. The user is working on a README file. Help them refine it, add sections, fix wording, suggest improvements, or answer questions. Be concise and actionable.
+
+Current README:\n\n${currentReadme}`;
+
+  try {
+    const resp = await fetch(MIMO_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MIMO_MODEL,
+        messages: [
+          { role: 'system', content: sysPrompt },
+          ...chatHistory.slice(-10)
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
+    const data = await resp.json();
+    const reply = data.choices?.[0]?.message?.content || 'Sorry, I couldn\'t process that.';
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    messages.innerHTML += `<div class="chat-msg ai">${escapeMarkdown(reply)}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+
+    // If chat response contains markdown, offer to update README
+    if (reply.includes('#') || reply.includes('```')) {
+      const extractedMd = extractMarkdown(reply);
+      if (extractedMd) {
+        document.getElementById('rawEditor').value = extractedMd;
+        generatedMarkdown = extractedMd;
+        updatePreview(extractedMd);
+      }
+    }
+  } catch (e) {
+    messages.innerHTML += `<div class="chat-msg ai" style="color:var(--err)">Error: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function extractMarkdown(text) {
+  const m = text.match(/```(?:markdown)?\n([\s\S]*?)```/);
+  return m ? m[1].trim() : null;
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeMarkdown(s) {
+  // Render markdown in chat
+  return marked.parse(s, { breaks: true });
+}
+
+// === Toast ===
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
